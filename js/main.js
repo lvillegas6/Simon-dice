@@ -13,6 +13,7 @@ class Juego{
     }
 
     inicializar(){
+        this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
         boton.classList.add('hide');
         this.nivel = 1;
         this.colores = {
@@ -22,6 +23,7 @@ class Juego{
             naranja,
             verde
         }
+        this.coloresArray = Object.values(this.colores);
     }
 
     generarSecuencia(){
@@ -31,6 +33,7 @@ class Juego{
 
     siguienteNivel(){
         this.iluminarSecuencia();
+        this.agregarEventosClick();
     }
 
     transformarNumeroAColor(numero){
@@ -65,6 +68,24 @@ class Juego{
     apagarColor(color){
         this.colores[color].classList.remove('target', 'light');
     }
+
+    agregarEventosClick(){
+        this.coloresArray.forEach(colores => {
+            colores.addEventListener('click', this.elegirColor);
+        });
+    }
+
+    eliminarEventosClick(){
+        this.coloresArray.forEach(colores => {
+            colores.removeEventListener('click', this.elegirColor);
+        });
+    }
+
+    elegirColor(e){
+        console.log(this)
+        this.eliminarEventosClick();
+    }
+
 }
 
 
