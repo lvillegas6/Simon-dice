@@ -3,6 +3,10 @@ const violeta = document.getElementById('violeta')
 const naranja = document.getElementById('naranja')
 const verde = document.getElementById('verde')
 const boton = document.getElementById('boton');
+const ULTIMO_NIVEL = 10;
+
+const delay = time => new Promise(resolveCallback => setTimeout(resolveCallback, time));
+
 
 class Juego{
 
@@ -13,6 +17,8 @@ class Juego{
     }
 
     inicializar(){
+        //De esta manera elegirColor siempre va a estar atada a la clase o objeto JUEGO
+        //No va a poder cambiar el contexto no importa si lo llama el navegador, settimeOut siemppre this estara atada al juego.
         this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
         boton.classList.add('hide');
         this.nivel = 1;
@@ -28,10 +34,11 @@ class Juego{
 
     generarSecuencia(){
                         //generar array de 10 elemeto, luego colocando el valor 0 a cada elemento
-        this.secuencia = new Array(10).fill(0).map(n => Math.floor(Math.random() * 4));
+        this.secuencia = new Array(ULTIMO_NIVEL).fill(0).map(n => Math.floor(Math.random() * 4));
     }
 
     siguienteNivel(){
+        this.subnivel = 0;
         this.iluminarSecuencia();
         this.agregarEventosClick();
     }
@@ -46,6 +53,19 @@ class Juego{
                 return 'naranja';
             case 3:
                 return 'verde';
+        }
+    }
+
+    transformarColorANumero(color){
+        switch(color){
+            case 'celeste':
+                return 0;
+            case 'violeta':
+                return 1;
+            case 'naranja':
+                return 2;
+            case 'verde':
+                return 3;
         }
     }
 
@@ -71,7 +91,11 @@ class Juego{
 
     agregarEventosClick(){
         this.coloresArray.forEach(colores => {
-            colores.addEventListener('click', this.elegirColor);
+            //No podemos poner el .bind() aqui (this.elegircolor.bind(this))
+            //Ya que bind() retorna un nuevo contexto (scope)
+            //por lo que cuando se agregan los eventos clic funciona bien pero al usar la función 
+            //eliminarEventosClic no coinciden los contextos (scopes) con los agregados y no los elimina.
+            colores.addEventListener('click', this.elegirColor); 
         });
     }
 
@@ -82,8 +106,33 @@ class Juego{
     }
 
     elegirColor(e){
-        console.log(this)
-        this.eliminarEventosClick();
+        const nombreColor = e.target.dataset.color;
+        const numeroColor = this.transformarColorANumero(nombreColor);
+        this.iluminarColor(nombreColor) ;
+        if(numeroColor === this.secuencia[this.subnivel]){
+            this.subnivel++;
+
+            if(this.subnivel === this.nivel){
+                this.nivel++;
+                this.eliminarEventosClick();
+
+                if(this.nivel === (ULTIMO_NIVEL +1)){
+                    //GANA!
+                }else{
+                    delay(1500)
+                        .then(() => this.siguienteNivel());
+
+                }
+            }
+
+
+        }else{
+            this.perderJuego();
+        }
+    }
+
+    perderJuego(){
+
     }
 
 }
