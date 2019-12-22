@@ -13,7 +13,8 @@ class Juego{
     constructor(){
         this.inicializar(); //este método siempre va dentro del constructor.
         this.generarSecuencia();
-        this.siguienteNivel();
+        delay(500) //Al pasar la funcion como referencia se pierde el contexto, recuerda poner .bind() para que no pierda el contexto
+            .then(this.siguienteNivel); 
     }
 
     inicializar(){
@@ -22,8 +23,9 @@ class Juego{
         //Por lo general esto pasa cuando pasamos un callback por referencia, por ejemplo .then(algo)
         //para evitar que se pierda el contexto podemos usar .then( () => algo() );
         //o simplemente this.algo = this.algo.bind(this) asi nunca perdemos el contexto.
+        this.siguienteNivel = this.siguienteNivel.bind(this);
         this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
-        boton.classList.add('hide');
+        boton.classList.toggle('hide');
         this.nivel = 1;
         this.colores = {
             //celeste: celeste, esto es equivalente.
@@ -119,8 +121,9 @@ class Juego{
                 this.nivel++;
                 this.eliminarEventosClick();
 
-                if(this.nivel === (ULTIMO_NIVEL +1)){
+                if(this.nivel === (ULTIMO_NIVEL + 1)){
                     //GANA!
+                    this.ganoJuego();
                 }else{
                     delay(1500)
                         .then(() => this.siguienteNivel());
@@ -134,8 +137,19 @@ class Juego{
         }
     }
 
-    perderJuego(){
+    ganoJuego(){
+        swal('Simon Dice', 'Felicitaciones, ganaste el juego', 'success')
+            .then(() =>{
+                this.inicializar();
+            });
+    }
 
+    perderJuego(){
+        swal('Simon Dice', 'Lo lamentamos, perdiste :(', 'error')
+        .then(() =>{
+            this.eliminarEventosClick();
+            this.inicializar();
+        });
     }
 
 }
