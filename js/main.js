@@ -19,6 +19,9 @@ class Juego{
     inicializar(){
         //De esta manera elegirColor siempre va a estar atada a la clase o objeto JUEGO
         //No va a poder cambiar el contexto no importa si lo llama el navegador, settimeOut siemppre this estara atada al juego.
+        //Por lo general esto pasa cuando pasamos un callback por referencia, por ejemplo .then(algo)
+        //para evitar que se pierda el contexto podemos usar .then( () => algo() );
+        //o simplemente this.algo = this.algo.bind(this) asi nunca perdemos el contexto.
         this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
         boton.classList.add('hide');
         this.nivel = 1;
