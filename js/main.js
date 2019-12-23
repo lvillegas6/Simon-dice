@@ -2,11 +2,21 @@ const celeste = document.getElementById('celeste')
 const violeta = document.getElementById('violeta')
 const naranja = document.getElementById('naranja')
 const verde = document.getElementById('verde')
-const boton = document.getElementById('boton');
+const boton = document.getElementById('botonEmpezar');
+
+const tiempo = document.getElementById('tiempo');
+const nivel = document.getElementById('nivel');
+const puntos = document.getElementById('puntos');
+const barraProgreso = document.getElementById('barraProgreso');
+const blip = zounds.load("sounds/blip.wav");
+
 const ULTIMO_NIVEL = 10;
+const TOTAL_PUNTOS = 10;
+const TIEMPO_MAX = 10;
 
 const delay = time => new Promise(resolveCallback => setTimeout(resolveCallback, time));
 
+tiempo.innerHTML = TIEMPO_MAX;
 
 class Juego{
 
@@ -27,6 +37,11 @@ class Juego{
         this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
         boton.classList.toggle('hide');
         this.nivel = 1;
+
+        nivel.innerHTML = this.nivel;
+        puntos.innerHTML = 0;
+        this.actualizarProgreso(0);
+
         this.colores = {
             //celeste: celeste, esto es equivalente.
             celeste,
@@ -34,6 +49,7 @@ class Juego{
             naranja,
             verde
         }
+    
         this.coloresArray = Object.values(this.colores);
     }
 
@@ -43,10 +59,33 @@ class Juego{
     }
 
     siguienteNivel(){
-        this.subnivel = 0;
-        this.iluminarSecuencia();
-        this.agregarEventosClick();
+        this.subnivel = 0;  
+        nivel.innerHTML = this.nivel;
+        this.progreso = 100 / this.nivel;
+        this.porcentaje = 0;
+        this.contador = TIEMPO_MAX;
+
+        this.actualizarProgreso(0);
+        this.iluminarSecuencia()
+            .then(() => {
+                this.subnivel = 0;
+                this.agregarEventos();
+                this.counterTime();
+            });
     }
+
+    counterTime() {
+        
+        this.cronometro = setInterval(() => {
+          this.contador--;
+          if (this.contador === 0) {
+            clearInterval(this.cronometro);
+            this.perderJuego();
+          } else {
+            tiempo.innerText = this.contador;
+          }
+        }, 1000);
+      }
 
     transformarNumeroAColor(numero){
         switch(numero){
@@ -74,67 +113,85 @@ class Juego{
         }
     }
 
-    iluminarSecuencia(){ 
-        //En los ciclos for es donde debemos usar let y const, ya que se puede presentar bugs
-        //var ya casi no se utiliza.
-        //Porque cuando se ejecute el ultimo ciclo, se quedara el ultimo color registrado, haciendo que
-        //El setTimeOut siempre ejecute el ultimo color.
-        for(let i = 0; i < this.nivel; i++){
-            const color = this.transformarNumeroAColor(this.secuencia[i]);
-            setTimeout(() => { this.iluminarColor(color)}, 1000 * i);
+    iluminarSecuencia(){
+        return new Promise((resolve) => {
+            for(let i = 0; i < this.nivel; i++){
+                const color = this.transformarNumeroAColor(this.secuencia[i]);
+                delay(1000 * i)
+                    .then(this.iluminarColor.bind(this, color, resolve));
+            }
+        });
+    }
+
+    iluminarColor(color, resolve){
+        this.colores[color].classList.add('target', 'light')
+        blip.play();
+        delay(350)
+            .then(this.apagarColor.bind(this, color, resolve));
+    }
+
+    apagarColor(color, resolve){
+        this.colores[color].classList.remove('target', 'light');
+        if(resolve){
+            this.subnivel++;
+            if(this.subnivel === this.nivel){
+                resolve();
+            }
         }
     }
 
-    iluminarColor(color){
-        this.colores[color].classList.add('target', 'light')
-        setTimeout( () => this.apagarColor(color), 350)
-    }
-
-    apagarColor(color){
-        this.colores[color].classList.remove('target', 'light');
-    }
-
-    agregarEventosClick(){
+    agregarEventos(){
         this.coloresArray.forEach(colores => {
-            //No podemos poner el .bind() aqui (this.elegircolor.bind(this))
-            //Ya que bind() retorna un nuevo contexto (scope)
-            //por lo que cuando se agregan los eventos clic funciona bien pero al usar la función 
-            //eliminarEventosClic no coinciden los contextos (scopes) con los agregados y no los elimina.
             colores.addEventListener('click', this.elegirColor); 
         });
     }
 
-    eliminarEventosClick(){
+    eliminarEventos(){
         this.coloresArray.forEach(colores => {
             colores.removeEventListener('click', this.elegirColor);
         });
     }
 
+    actualizarProgreso(porcentaje){
+        barraProgreso.style.width = `${porcentaje}%`;
+    }
+
     elegirColor(e){
+
         const nombreColor = e.target.dataset.color;
         const numeroColor = this.transformarColorANumero(nombreColor);
         this.iluminarColor(nombreColor) ;
+        
         if(numeroColor === this.secuencia[this.subnivel]){
+           
             this.subnivel++;
+            this.porcentaje += this.progreso;
+            this.agregarPuntos();
+            this.actualizarProgreso(this.porcentaje)
 
             if(this.subnivel === this.nivel){
                 this.nivel++;
-                this.eliminarEventosClick();
-
+                this.eliminarEventos();
+                this.pararContador();
                 if(this.nivel === (ULTIMO_NIVEL + 1)){
-                    //GANA!
                     this.ganoJuego();
                 }else{
-                    delay(1500)
-                        .then(() => this.siguienteNivel());
-
+                    swal('¿Listo para más?', `ir al nivel ${this.nivel}`, 'success')
+                        .then(() => {
+                            this.actualizarProgreso(0)
+                            return delay(500)
+                        })
+                        .then(this.siguienteNivel);
                 }
             }
-
 
         }else{
             this.perderJuego();
         }
+    }
+
+    agregarPuntos(){
+        puntos.innerHTML = parseInt(puntos.innerHTML) + TOTAL_PUNTOS;
     }
 
     ganoJuego(){
@@ -145,13 +202,18 @@ class Juego{
     }
 
     perderJuego(){
-        swal('Simon Dice', 'Lo lamentamos, perdiste :(', 'error')
+        this.pararContador();
+        swal('Perdiste', `Total de puntos: ${puntos.innerHTML}`, 'error')
         .then(() =>{
-            this.eliminarEventosClick();
+            this.eliminarEventos();
             this.inicializar();
         });
     }
 
+    pararContador(){
+        clearInterval(this.cronometro);
+        tiempo.innerHTML = TIEMPO_MAX;
+    }
 }
 
 
