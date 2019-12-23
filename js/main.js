@@ -10,6 +10,8 @@ const puntos = document.getElementById('puntos');
 const barraProgreso = document.getElementById('barraProgreso');
 const blip = zounds.load("sounds/blip.wav");
 
+
+//2212
 const ULTIMO_NIVEL = 10;
 const TOTAL_PUNTOS = 10;
 const TIEMPO_MAX = 10;
@@ -36,10 +38,11 @@ class Juego{
         this.siguienteNivel = this.siguienteNivel.bind(this);
         this.elegirColor = this.elegirColor.bind(this); //ESTO ES PARA CAMBIAR EL CONTEXTO, bind(this | juego) para atar la funcion al objeto del juego.
         boton.classList.toggle('hide');
+        
         this.nivel = 1;
-
         nivel.innerHTML = this.nivel;
         puntos.innerHTML = 0;
+
         this.actualizarProgreso(0);
 
         this.colores = {
@@ -65,16 +68,16 @@ class Juego{
         this.porcentaje = 0;
         this.contador = TIEMPO_MAX;
 
-        this.actualizarProgreso(0);
+        this.actualizarProgreso(this.porcentaje);
         this.iluminarSecuencia()
             .then(() => {
                 this.subnivel = 0;
+                this.contadorDeTiempo();
                 this.agregarEventos();
-                this.counterTime();
             });
     }
 
-    counterTime() {
+    contadorDeTiempo() {
         
         this.cronometro = setInterval(() => {
           this.contador--;
