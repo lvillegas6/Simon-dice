@@ -10,18 +10,34 @@
 </head>
 
 <body>
-    <div>
+
+    <div class="header">
+        <ul>
+            <li>Nivel: <span id="nivel">1</span></li>
+            <li>Puntos: <span id="puntos">0</span></li>
+        </ul>
+    </div>
+
+    <div class="box">
         <div class="gameboard">
             <div id="celeste" class="color celeste left" data-color="celeste"></div>
             <div id="violeta" class="color violeta right" data-color="violeta"></div>
             <div id="naranja" class="color naranja left" data-color="naranja"></div>
             <div id="verde" class="color verde right" data-color="verde"></div>
+            <div class="centrar">
+                <div class="centrar-tiempo"><span id="tiempo">0</span></div>
+            </div>
+            <button id="botonEmpezar" class="btn-start">
+                ¡Empezar Juego!
+            </button>
         </div>
-        <button id="boton" class="btn-start">
-            ¡Empezar Juego!
-        </button>
+        <div class="barra">
+            <div id="barraProgreso" class="progreso"></div>
+        </div>
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+    <script src="js/zounds.min.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
