@@ -30,7 +30,7 @@ body {
 .gameboard {
     height: 100vh;
     width: 100vh;
-    background-color: red;
+    background-color: wheat;
     border-radius: 50%;
     max-height: 80vh;
     max-width: 80vh;
@@ -58,6 +58,7 @@ body {
     bottom: 0;
     margin: auto;
     overflow: hidden;
+    outline: none;
   
 }
 .centrar div  {
