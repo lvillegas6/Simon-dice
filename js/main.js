@@ -1,25 +1,20 @@
 /*Las ventajas en algunas situaciones traen desventajas en otras. No puede usar una función de flecha cuando se requiere 
 un contexto dinámico: definir métodos, crear objetos con 
-constructores, obtener el objetivo thisal manejar eventos.*/
+constructores, obtener el objetivo this al manejar eventos.*/
 "use strict"
 
-const celeste = document.getElementById('celeste')
-const violeta = document.getElementById('violeta')
-const naranja = document.getElementById('naranja')
-const verde = document.getElementById('verde')
-const boton = document.getElementById('botonEmpezar');
-
+const gameboard = document.querySelector('.gameboard')
 const tiempo = document.getElementById('tiempo');
 const nivel = document.getElementById('nivel');
 const puntos = document.getElementById('puntos');
 const barraProgreso = document.getElementById('barraProgreso');
 const blip = zounds.load("sounds/blip.wav");
-
+const boton = document.getElementById('botonEmpezar');
 
 //2212
 const ULTIMO_NIVEL = 10;
 const TOTAL_PUNTOS = 10;
-const TIEMPO_MAX = 10;
+const TIEMPO_MAX = 15;
 
 const delay = time => new Promise(resolveCallback => setTimeout(resolveCallback, time));
 
@@ -27,8 +22,8 @@ tiempo.innerHTML = TIEMPO_MAX;
 
 class Juego{
 
-    static value = 2;
     constructor(){
+  
         this.inicializar(); //este método siempre va dentro del constructor.
         this.generarSecuencia();
         delay(500) //Al pasar la funcion como referencia se pierde el contexto, recuerda poner .bind() para que no pierda el contexto
@@ -36,6 +31,7 @@ class Juego{
     }
 
     inicializar(){
+
         //De esta manera elegirColor siempre va a estar atada a la clase o objeto JUEGO
         //No va a poder cambiar el contexto no importa si lo llama el navegador, settimeOut siemppre this estara atada al juego.
         //Por lo general esto pasa cuando pasamos un callback por referencia, por ejemplo .then(algo)
@@ -50,16 +46,6 @@ class Juego{
         puntos.innerHTML = 0;
 
         this.actualizarProgreso(0);
-
-        this.colores = {
-            //celeste: celeste, esto es equivalente.
-            celeste,
-            violeta,
-            naranja,
-            verde
-        }
-    
-        this.coloresArray = Object.values(this.colores);
     }
 
     generarSecuencia(){
@@ -68,6 +54,22 @@ class Juego{
     }
 
     siguienteNivel(){
+    
+        const celeste = document.getElementById('celeste')
+        const violeta = document.getElementById('violeta')
+        const naranja = document.getElementById('naranja')
+        const verde = document.getElementById('verde')
+
+        this.colores = {
+            //celeste: celeste, esto es equivalente.
+            celeste,
+            violeta,
+            naranja,
+            verde
+        }
+
+        this.coloresArray = Object.values(this.colores);
+    
         this.subnivel = 0;  
         nivel.innerHTML = this.nivel;
         this.progreso = 100 / this.nivel;
@@ -95,36 +97,10 @@ class Juego{
         }, 1000);
       }
 
-    transformarNumeroAColor(numero){
-        switch(numero){
-            case 0:
-                return 'celeste';
-            case 1:
-                return 'violeta';
-            case 2:
-                return 'naranja';
-            case 3:
-                return 'verde';
-        }
-    }
-
-    transformarColorANumero(color){
-        switch(color){
-            case 'celeste':
-                return 0;
-            case 'violeta':
-                return 1;
-            case 'naranja':
-                return 2;
-            case 'verde':
-                return 3;
-        }
-    }
-
     iluminarSecuencia(){
         return new Promise((resolve) => {
             for(let i = 0; i < this.nivel; i++){
-                const color = this.transformarNumeroAColor(this.secuencia[i]);
+                const color = Juego.transformarNumeroAColor(this.secuencia[i]);
                 delay(1000 * i)
                     .then(this.iluminarColor.bind(this, color, resolve));
             }
@@ -167,7 +143,7 @@ class Juego{
     elegirColor(e){
 
         const nombreColor = e.target.dataset.color;
-        const numeroColor = this.transformarColorANumero(nombreColor);
+        const numeroColor = Juego.transformarColorANumero(nombreColor);
         this.iluminarColor(nombreColor) ;
         
         if(numeroColor === this.secuencia[this.subnivel]){
@@ -184,10 +160,12 @@ class Juego{
                 if(this.nivel === (ULTIMO_NIVEL + 1)){
                     this.ganoJuego();
                 }else{
+                    Juego.generarColores(this.colores)
                     swal('¿Listo para más?', `ir al nivel ${this.nivel}`, 'success')
                         .then(() => {
+                            
                             this.actualizarProgreso(0)
-                            return delay(500)
+                            return delay(600)
                         })
                         .then(this.siguienteNivel);
                 }
@@ -222,8 +200,61 @@ class Juego{
         clearInterval(this.cronometro);
         tiempo.innerHTML = TIEMPO_MAX;
     }
+
+    
+    static transformarNumeroAColor(numero){
+        switch(numero){
+            case 0:
+                return 'celeste';
+            case 1:
+                return 'violeta';
+            case 2:
+                return 'naranja';
+            case 3:
+                return 'verde';
+        }
+    }
+
+    static transformarColorANumero(color){
+        switch(color){
+            case 'celeste':
+                return 0;
+            case 'violeta':
+                return 1;
+            case 'naranja':
+                return 2;
+            case 'verde':
+                return 3;
+        }
+    }
+
+    static generarColores(oldColores){
+
+        const coloresId = [0, 1, 2, 3]
+        coloresId.sort(() => Math.random() - 0.5)
+    
+        coloresId.forEach(id => {
+
+            const color = Juego.transformarNumeroAColor(id);
+            const div = document.createElement('div')
+        
+            div.setAttribute('id', color)
+            div.setAttribute('class', `color ${color}`)
+            div.setAttribute('data-color', color)
+
+            if(oldColores){
+                gameboard.removeChild(oldColores[color])
+                gameboard.appendChild(div)
+            }else{
+                gameboard.appendChild(div)
+            }
+        })
+    }
 }
 
+
+
+Juego.generarColores(this.colores)
 
 function empezarJuego(e){
     window.juego = new Juego(); //Poner esta variable dentro de windows, para poder debugearla. 
