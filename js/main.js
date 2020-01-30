@@ -1,3 +1,8 @@
+/*Las ventajas en algunas situaciones traen desventajas en otras. No puede usar una función de flecha cuando se requiere 
+un contexto dinámico: definir métodos, crear objetos con 
+constructores, obtener el objetivo thisal manejar eventos.*/
+"use strict"
+
 const celeste = document.getElementById('celeste')
 const violeta = document.getElementById('violeta')
 const naranja = document.getElementById('naranja')
@@ -22,6 +27,7 @@ tiempo.innerHTML = TIEMPO_MAX;
 
 class Juego{
 
+    static value = 2;
     constructor(){
         this.inicializar(); //este método siempre va dentro del constructor.
         this.generarSecuencia();
@@ -78,11 +84,10 @@ class Juego{
     }
 
     contadorDeTiempo() {
-        
+        //PID del contador(this.cronometro)
         this.cronometro = setInterval(() => {
           this.contador--;
           if (this.contador === 0) {
-            clearInterval(this.cronometro);
             this.perderJuego();
           } else {
             tiempo.innerText = this.contador;
@@ -151,7 +156,7 @@ class Juego{
 
     eliminarEventos(){
         this.coloresArray.forEach(colores => {
-            colores.removeEventListener('click', this.elegirColor);
+            colores.removeEventListener('click',this.elegirColor);
         });
     }
 
